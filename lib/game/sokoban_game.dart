@@ -7,6 +7,7 @@ import 'package:flutter/material.dart'; // For Colors
 import 'package:sokoban_game/core/game_controller.dart';
 import 'package:sokoban_game/core/enums.dart';
 import 'package:sokoban_game/levels/level_data.dart';
+import 'package:sokoban_game/components/arrow_button_visual.dart';
 // import 'package:flame/events.dart'; // For TapCallbacks // Unnecessary import
 import 'package:sokoban_game/effects/victory_effect.dart';
 
@@ -20,6 +21,7 @@ class SokobanGame extends FlameGame with KeyboardEvents {
   int currentLevelIndex = 0;
   late final CameraComponent cameraComponent;
   late final World worldComponent;
+  late final TextComponent levelTextComponent;
   
   final double tileSize = 64.0;
   Vector2 gridOffset = Vector2.zero();
@@ -44,45 +46,50 @@ class SokobanGame extends FlameGame with KeyboardEvents {
     worldComponent.add(staticLayer);
     worldComponent.add(dynamicLayer);
     
-    // Add HUD
-    add(HudButtonComponent(
-      button: CircleComponent(
-        radius: 30, 
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
+    // Level Text HUD
+    levelTextComponent = TextComponent(
+      text: '',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      margin: const EdgeInsets.only(right: 40, bottom: 60),
+    );
+    // Add to camera viewport so it stays on screen
+    cameraComponent.viewport.add(levelTextComponent..position = Vector2(20, 40));
+
+    // Add HUD (D-Pad)
+    // Right
+    add(HudButtonComponent(
+      button: ArrowButtonVisual(direction: Direction.right),
+      buttonDown: ArrowButtonVisual(direction: Direction.right, isPressed: true),
+      margin: const EdgeInsets.only(right: 20, bottom: 90),
       onPressed: () => _handleInput(Direction.right),
     ));
     
+    // Left
     add(HudButtonComponent(
-      button: CircleComponent(
-        radius: 30, 
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
-      ),
-      margin: const EdgeInsets.only(left: 40, bottom: 60),
+      button: ArrowButtonVisual(direction: Direction.left),
+      buttonDown: ArrowButtonVisual(direction: Direction.left, isPressed: true),
+      margin: const EdgeInsets.only(right: 160, bottom: 90),
       onPressed: () => _handleInput(Direction.left),
     ));
 
+    // Down
     add(HudButtonComponent(
-      button: CircleComponent(
-        radius: 30, 
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
-      ),
-      margin: const EdgeInsets.only(bottom: 20, right: 100), // Approximate center-ish
-      // We need more precise layout for D-Pad but this is a start.
-      // better to align relative to screen edges.
-      // Let's mostly rely on keyboard for now but add simple buttons for "Reset" or "Next".
+      button: ArrowButtonVisual(direction: Direction.down),
+      buttonDown: ArrowButtonVisual(direction: Direction.down, isPressed: true),
+      margin: const EdgeInsets.only(right: 90, bottom: 20),
       onPressed: () => _handleInput(Direction.down),
     ));
     
-     add(HudButtonComponent(
-      button: CircleComponent(
-        radius: 30, 
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
-      ),
-      margin: const EdgeInsets.only(top: 40, right: 40), // Top Right? No.
-      // D-Pad logic is complex with just margins.
-      // Let's implement TapCallbacks on the game background? No.
+    // Up
+    add(HudButtonComponent(
+      button: ArrowButtonVisual(direction: Direction.up),
+      buttonDown: ArrowButtonVisual(direction: Direction.up, isPressed: true),
+      margin: const EdgeInsets.only(right: 90, bottom: 160),
       onPressed: () => _handleInput(Direction.up),
     ));
 
@@ -97,7 +104,9 @@ class SokobanGame extends FlameGame with KeyboardEvents {
     }
     
     currentLevelIndex = index;
-    controller.loadLevel(LevelData.levels[index]);
+    final level = LevelData.levels[index];
+    controller.loadLevel(level.grid);
+    levelTextComponent.text = level.description;
     
     _buildLevel();
   }
