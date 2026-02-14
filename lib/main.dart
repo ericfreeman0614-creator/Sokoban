@@ -35,13 +35,13 @@ class GamePage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.8),
+                  color: Colors.black.withOpacity(0.8),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.amber, width: 4),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: const [
                     Text(
                       'TOTAL VICTORY!',
                       style: TextStyle(
