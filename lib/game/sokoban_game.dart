@@ -7,12 +7,12 @@ import 'package:flutter/material.dart'; // For Colors
 import 'package:sokoban_game/core/game_controller.dart';
 import 'package:sokoban_game/core/enums.dart';
 import 'package:sokoban_game/levels/level_data.dart';
-import 'package:flame/events.dart'; // For TapCallbacks
+// import 'package:flame/events.dart'; // For TapCallbacks // Unnecessary import
 import 'package:sokoban_game/effects/victory_effect.dart';
 
-class SokobanGame extends FlameGame with KeyboardEvents, HasTappables { 
+class SokobanGame extends FlameGame with KeyboardEvents {
   // HasTappables is deprecated in newer flame, use TapCallbacks logic on components or HasTappableComponents
-  // Actually in 1.7.3 it might be HasTappablesBridge or similar, or just TapCallbacks mixin on components + HasTappables on Game?
+  // actually in 1.7.3 it might be HasTappablesBridge or similar, or just TapCallbacks mixin on components + HasTappables on Game?
   // Let's check Flame versions. standard is TapCallbacks in recent versions.
   // We'll use HUD buttons which are PositionComponents with TapCallbacks.
   
@@ -48,7 +48,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
     add(HudButtonComponent(
       button: CircleComponent(
         radius: 30, 
-        paint: Paint()..color = Colors.white.withOpacity(0.5)
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
       ),
       margin: const EdgeInsets.only(right: 40, bottom: 60),
       onPressed: () => _handleInput(Direction.right),
@@ -57,7 +57,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
     add(HudButtonComponent(
       button: CircleComponent(
         radius: 30, 
-        paint: Paint()..color = Colors.white.withOpacity(0.5)
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
       ),
       margin: const EdgeInsets.only(left: 40, bottom: 60),
       onPressed: () => _handleInput(Direction.left),
@@ -66,7 +66,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
     add(HudButtonComponent(
       button: CircleComponent(
         radius: 30, 
-        paint: Paint()..color = Colors.white.withOpacity(0.5)
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
       ),
       margin: const EdgeInsets.only(bottom: 20, right: 100), // Approximate center-ish
       // We need more precise layout for D-Pad but this is a start.
@@ -78,7 +78,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
      add(HudButtonComponent(
       button: CircleComponent(
         radius: 30, 
-        paint: Paint()..color = Colors.white.withOpacity(0.5)
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.5)
       ),
       margin: const EdgeInsets.only(top: 40, right: 40), // Top Right? No.
       // D-Pad logic is complex with just margins.
@@ -92,7 +92,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
 
   void loadLevel(int index) {
     if (index >= LevelData.levels.length) {
-      print("All levels completed!");
+      debugPrint("All levels completed!");
       return;
     }
     
@@ -140,7 +140,7 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
             staticLayer.add(CircleComponent(
               radius: tileSize * 0.15,
               position: pos + Vector2.all(tileSize * 0.35),
-              paint: Paint()..color = Colors.redAccent.withOpacity(0.6),
+              paint: Paint()..color = Colors.redAccent.withValues(alpha: 0.6),
             ));
           }
         }
@@ -200,15 +200,15 @@ class SokobanGame extends FlameGame with KeyboardEvents, HasTappables {
            worldComponent.add(VictoryEffect()); // Add visuals
         } else {
            // Maybe mini-fanfare?
-           print("Level Complete!");
+           debugPrint("Level Complete!");
         }
       }
     }
   }
 
   @override
-  KeyEventResult onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (event is RawKeyDownEvent) {
+  KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) _handleInput(Direction.up);
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) _handleInput(Direction.down);
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) _handleInput(Direction.left);

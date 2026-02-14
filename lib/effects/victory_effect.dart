@@ -38,11 +38,11 @@ class VictoryEffect extends PositionComponent {
             return AcceleratedParticle(
               acceleration: Vector2(0, 200), // Gravity
               speed: Vector2(cos(angle), sin(angle)) * speed,
-              child: ComputableParticle(
+              child: ComputedParticle(
                 renderer: (canvas, particle) {
                   Paint paint = Paint()
-                    ..color = Colors.amber.withOpacity(1 - particle.progress);
-                  canvas.drawCircle(Offset.zero, 3 * (1 - particle.progress), paint);
+                    ..color = Colors.amber.withValues(alpha: 1 - particle.progress);
+                  canvas.drawCircle(Offset.zero, 3.0 * (1 - particle.progress), paint);
                 },
               ),
             );
