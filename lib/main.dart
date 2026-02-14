@@ -1,6 +1,7 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:sokoban_game/game/sokoban_game.dart';
+import 'package:sokoban_game/game/hud_overlay.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +30,9 @@ class GamePage extends StatelessWidget {
     return Scaffold(
       body: GameWidget(
         game: SokobanGame(),
+        initialActiveOverlays: const ['Hud'],
         overlayBuilderMap: {
+          'Hud': (context, SokobanGame game) => HudOverlay(game: game),
           'Victory': (context, SokobanGame game) {
             return Center(
               child: Container(

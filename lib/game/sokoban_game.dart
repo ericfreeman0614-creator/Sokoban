@@ -21,6 +21,9 @@ class SokobanGame extends FlameGame with KeyboardEvents {
   late final CameraComponent cameraComponent;
   late final World worldComponent;
 
+  // Notifiers for HUD
+  final ValueNotifier<String> levelDescriptionNotifier = ValueNotifier("");
+
   final double tileSize = 64.0;
   Vector2 gridOffset = Vector2.zero();
 
@@ -44,42 +47,15 @@ class SokobanGame extends FlameGame with KeyboardEvents {
     worldComponent.add(staticLayer);
     worldComponent.add(dynamicLayer);
 
-    // Add HUD
-    add(HudButtonComponent(
-      button: CircleComponent(
-          radius: 30, paint: Paint()..color = Colors.white.withOpacity(0.5)),
-      margin: const EdgeInsets.only(right: 40, bottom: 60),
-      onPressed: () => _handleInput(Direction.right),
-    ));
-
-    add(HudButtonComponent(
-      button: CircleComponent(
-          radius: 30, paint: Paint()..color = Colors.white.withOpacity(0.5)),
-      margin: const EdgeInsets.only(left: 40, bottom: 60),
-      onPressed: () => _handleInput(Direction.left),
-    ));
-
-    add(HudButtonComponent(
-      button: CircleComponent(
-          radius: 30, paint: Paint()..color = Colors.white.withOpacity(0.5)),
-      margin: const EdgeInsets.only(
-          bottom: 20, right: 100), // Approximate center-ish
-      // We need more precise layout for D-Pad but this is a start.
-      // better to align relative to screen edges.
-      // Let's mostly rely on keyboard for now but add simple buttons for "Reset" or "Next".
-      onPressed: () => _handleInput(Direction.down),
-    ));
-
-    add(HudButtonComponent(
-      button: CircleComponent(
-          radius: 30, paint: Paint()..color = Colors.white.withOpacity(0.5)),
-      margin: const EdgeInsets.only(top: 40, right: 40), // Top Right? No.
-      // D-Pad logic is complex with just margins.
-      // Let's implement TapCallbacks on the game background? No.
-      onPressed: () => _handleInput(Direction.up),
-    ));
+    // HUD is now handled by Flutter Overlay
 
     loadLevel(currentLevelIndex);
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    _zoomToFit();
   }
 
   void loadLevel(int index) {
@@ -89,9 +65,42 @@ class SokobanGame extends FlameGame with KeyboardEvents {
     }
 
     currentLevelIndex = index;
-    controller.loadLevel(LevelData.levels[index]);
+    Level level = LevelData.levels[index];
+
+    controller.loadLevel(level.grid);
+    levelDescriptionNotifier.value = level.description;
 
     _buildLevel();
+    _zoomToFit();
+  }
+
+  void _zoomToFit() {
+    if (controller.cols == 0 || controller.rows == 0) return;
+
+    // Calculate level dimensions
+    double levelWidth = controller.cols * tileSize;
+    double levelHeight = controller.rows * tileSize;
+
+    // Add some padding (e.g. 10% or fixed pixels) to edges
+    // Level is centered, so we just need to ensure levelWidth fits in canvasWidth with margin
+    double padding = 50.0;
+
+    double availableWidth = size.x - padding * 2;
+    double availableHeight = size.y - padding * 2;
+
+    if (availableWidth <= 0 || availableHeight <= 0) return;
+
+    double zoomX = availableWidth / levelWidth;
+    double zoomY = availableHeight / levelHeight;
+
+    // Use the smaller zoom to fit both dimensions
+    double zoom = (zoomX < zoomY) ? zoomX : zoomY;
+
+    // Clamp zoom to reasonable values if needed, but for "fit" we usually just take it.
+    // Maybe cap max zoom so small levels aren't huge? e.g. max 1.5 or 2.0
+    if (zoom > 1.5) zoom = 1.5;
+
+    cameraComponent.viewfinder.zoom = zoom;
   }
 
   void _buildLevel() {
@@ -173,7 +182,7 @@ class SokobanGame extends FlameGame with KeyboardEvents {
     }
   }
 
-  void _handleInput(Direction dir) {
+  void handleInput(Direction dir) {
     if (controller.isLevelComplete) {
       // Transition to next level
       loadLevel(currentLevelIndex + 1);
@@ -192,6 +201,9 @@ class SokobanGame extends FlameGame with KeyboardEvents {
         } else {
           // Maybe mini-fanfare?
           debugPrint("Level Complete!");
+          // Auto-advance for now or wait for user input?
+          // Let's wait for user input (any key/tap) to advance, but maybe show a message?
+          // For now, next input advances.
         }
       }
     }
@@ -202,16 +214,16 @@ class SokobanGame extends FlameGame with KeyboardEvents {
       RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        _handleInput(Direction.up);
+        handleInput(Direction.up);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        _handleInput(Direction.down);
+        handleInput(Direction.down);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        _handleInput(Direction.left);
+        handleInput(Direction.left);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        _handleInput(Direction.right);
+        handleInput(Direction.right);
       }
 
       // Cheats for debug
